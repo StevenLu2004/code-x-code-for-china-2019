@@ -24,16 +24,19 @@ def drawStar(x, y, n, m, d, r, fRefresh = False):
 	n //= g; m //= g
 	theta = m / n
 	sideL = 2 * r * math.cos((.5 - theta) * math.pi)
-	t.penup()
-	t.forward(r)
-	t.pendown()
-	t.left(90 + 180 * theta)
-	for _ in range(n):
-		t.forward(sideL)
-		t.left(360 * theta)
-	t.right(90 + 180 * theta)
-	t.penup()
-	t.forward(-r)
+	for _ in range(g):
+		t.penup()
+		t.forward(r)
+		t.pendown()
+		t.left(90 + 180 * theta)
+		for _ in range(n):
+			t.forward(sideL)
+			t.left(360 * theta)
+		t.right(90 + 180 * theta)
+		t.penup()
+		t.forward(-r)
+		t.left(360 / n / g)
+	t.right(360 / n)
 	t.right(d)
 	if fRefresh:
 		screen.update()
@@ -41,11 +44,13 @@ def drawStar(x, y, n, m, d, r, fRefresh = False):
 def rndc():
 	return random.randint(0, 255)
 
-comb = [[3, 1], [4, 1], [5, 2], [7, 2], [7, 3], [8, 3], [9, 2], [9, 4], [100, 1]]
-def randStar():
+comb = [[3, 1], [4, 1], [5, 2], [6, 2], [7, 2], [7, 3], [8, 3], [9, 2], [9, 3], [9, 4], [100, 1]]
+def randStar(x = None, y = None):
 	global comb
-	x = random.randint(-300, 300)
-	y = random.randint(-300, 300)
+	if x == None:
+		x = random.randint(-300, 300)
+	if y == None:
+		y = random.randint(-300, 300)
 	i = random.randint(0, len(comb) - 1)
 	d = random.randint(0, 359)
 	r = random.randint(30, 100)
@@ -55,9 +60,12 @@ def randStar():
 def main():
 	for _ in range(10):
 		randStar()
-	turtle.onkey(randStar, "space")
-	screen.exitonclick()
+	screen.onclick(randStar, btn = 1)
+	screen.onkey(randStar, "space")
+	screen.onkey(turtle.bye, "Escape")
+	screen.listen()
 	return 0
 
 if __name__ == "__main__":
 	main()
+	screen.mainloop()

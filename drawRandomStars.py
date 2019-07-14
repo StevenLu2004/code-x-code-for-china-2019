@@ -61,6 +61,7 @@ def main():
 	for _ in range(10):
 		randStar()
 	screen.onclick(randStar, btn = 1)
+	screen.onkey(randStar, "space")
 	screen.onkey(turtle.bye, "Escape")
 	screen.listen()
 	return 0
