@@ -16,14 +16,19 @@ class Timeout:
 		del self.timer
 
 class Interval:
-	def __init__(self, fn, tm):
+	def __init__(self, fn, tm, fixed = False):
 		self.fn = fn
 		self.tm = tm
+		self.fixed = fixed
 	def start(self):
 		def timeout(holder):
 			def wrapper():
-				timeout(holder)
-				holder.fn()
+				if holder.fixed:
+					timeout(holder)
+					holder.fn()
+				else:
+					holder.fn()
+					timeout(holder)
 			holder.timer = threading.Timer(holder.tm, wrapper)
 			holder.timer.start()
 		timeout(self)
@@ -37,7 +42,7 @@ def main():
 	interval = Interval(f1, .2)
 	def f2():
 		interval.end()
-	timeout = Timeout(f2, 1)
+	timeout = Timeout(f2, 1.01)
 	interval.start()
 	timeout.start()
 
