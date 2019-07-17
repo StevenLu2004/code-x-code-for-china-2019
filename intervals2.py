@@ -4,9 +4,10 @@ import time
 from sys import stderr
 
 class Interval:
-    def __init__(self, fun, period):
+    def __init__(self, fun, period, fixed = False):
         self.fun = fun
         self.period = period
+        self.fixed = fixed
         self.start_time = None
         self.running = False
 
@@ -16,8 +17,13 @@ class Interval:
                 print("Error: this thread started stopped.", file = stderr)
             while host.running:
                 if timer() - host.start_time >= host.period:
-                    host.fun()
-                    host.start_time = timer()
+                    if host.fixed:
+                        host.start_time += host.period
+                        thread2 = Thread(target = host.fun)
+                        thread2.start()
+                    else:
+                        host.start_time = timer()
+                        host.fun()
         self.running = True
         self.start_time = timer()
         self.thread1 = Thread(target = thread1_content, args = (self,))

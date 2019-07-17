@@ -37,7 +37,7 @@ def sth_else():
     print("Hello, world.")
     time.sleep(1)
     print("Bye, world.")
-interval1 = intervals2.Interval(sth_else, .5)
+interval1 = intervals2.Interval(sth_else, .5, True)
 def stopI1():
     interval1.cancel()
 interval1.start()
