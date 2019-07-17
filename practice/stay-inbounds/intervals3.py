@@ -39,4 +39,5 @@ class Interval:
             if level_2_thread.is_alive():
                 level_2_thread.join()
         self.thread1.join()
+        print("Thread 1 has just ended.")
         self.level_2_threads = []

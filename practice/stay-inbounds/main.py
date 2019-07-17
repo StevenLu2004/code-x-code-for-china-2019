@@ -164,7 +164,7 @@ def main():
 	def destroy_wrapper():
 		interval1.cancel()
 		delwindow(wnd)
-	wnd = newwindow(title = "Practice", size = (800, 600))
+	wnd = newwindow(title = "Stay Inbounds [$teven edit]", size = (800, 600))
 	wnd[2].onkey(destroy_wrapper, "Escape")
 	ship = turtle.RawTurtle(wnd[2])
 	ship.speed(0)
