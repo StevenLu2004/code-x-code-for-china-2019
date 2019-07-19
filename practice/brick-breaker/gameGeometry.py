@@ -34,7 +34,7 @@ class Angle:
         @see Angle._process(cir_val)
     """
     def process(self):
-        self.__angle = Angle._process(self.__angle)
+        self.__val = Angle._process(self.__val)
         return self
     """
         Class constructor for class Angle. Taking initial value and optionally the value mode.
@@ -164,7 +164,7 @@ class Angle:
     """
     def __add__(self, other):
         if isinstance(other, Angle):
-            return Angle(self.val + other.val, Angle.Mode.CIR)
+            return Angle(self.__val + other.__val, Angle.Mode.CIR)
         else:
             raise GameGeoTypeError("Second operand should be an Angle but is {}".format(type(other)))
     """
@@ -174,7 +174,7 @@ class Angle:
     """
     def __sub__(self, other):
         if isinstance(other, Angle):
-            return Angle(self.val - other.val, Angle.Mode.CIR)
+            return Angle(self.__val - other.__val, Angle.Mode.CIR)
         else:
             raise GameGeoTypeError("Second operand should be an Angle but is {}".format(type(other)))
     """
@@ -184,7 +184,7 @@ class Angle:
     """
     def __mul__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return Angle(self.val * other, Angle.Mode.CIR)
+            return Angle(self.__val * other, Angle.Mode.CIR)
         else:
             raise GameGeoTypeError("Second operand should be a number but is {}".format(type(other)))
     """
@@ -194,7 +194,7 @@ class Angle:
     """
     def __div__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return Angle(self.val / other, Angle.Mode.CIR)
+            return Angle(self.__val / other, Angle.Mode.CIR)
         else:
             raise GameGeoTypeError("Second operand should be a number but is {}".format(type(other)))
 
@@ -330,8 +330,8 @@ class Point:
     """
     def __str__(self):
         if self.z == 0:
-            return "Point({:.4f}, {:.4f})".format(self.x, self.y)
-        return "Point({:.4f}, {:.4f}, {:.4f})".format(self.x, self.y, self.z)
+            return "Point({:f}, {:f})".format(self.x, self.y)
+        return "Point({:f}, {:f}, {:f})".format(self.x, self.y, self.z)
     """
         Converts a vector to a point.
         @return {Point}
@@ -389,7 +389,7 @@ class Vector:
         @param {int, float} other the scalar
         @return {Vector}
     """
-    def __mul__(self, other):
+    def __div__(self, other):
         if isinstance(other, int) or isinstance(other, float):
             return Vector(self.x / other, self.y / other, self.z / other)
         else:
@@ -453,8 +453,8 @@ class Vector:
     """
     def __str__(self):
         if self.z == 0:
-            return "Vector({:.4f}, {:.4f})".format(self.x, self.y)
-        return "Vector({:.4f}, {:.4f}, {:.4f})".format(self.x, self.y, self.z)
+            return "Vector({:f}, {:f})".format(self.x, self.y)
+        return "Vector({:f}, {:f}, {:f})".format(self.x, self.y, self.z)
     """
         Converts a point to a vector.
         @return {Vector}
@@ -494,7 +494,7 @@ class Line:
         @see Vector.abs(self)
     """
     def dist(self, p):
-        return Vector.crossp(p - p1, p - p2).abs() / (p2 - p1).abs()
+        return Vector.crossp(p - self.p1, p - self.p2).abs() / (self.p2 - self.p1).abs()
     """
         Gets the vector from P1 on the line to P2.
         @return {Vector}
@@ -522,7 +522,7 @@ class Line:
                 return Line.LineRelationships.NON_COPLANAR
             elif Vector.crossp(l1.getVec(), l2.getVec()).abs() != 0:
                 return Line.LineRelationships.CROSSING
-            elif abs(l1.dist(l2.p1)) > 0:
+            elif l1.dist(l2.p1) > 0:
                 return Line.LineRelationships.PARALLEL
             else:
                 return Line.LineRelationships.IDENTICAL
@@ -539,7 +539,7 @@ class Line:
         @see Vector.crossp(a, b)
     """
     @staticmethod
-    def intersection(l1, l2):
+    def _intersection(l1, l2):
         if isinstance(l1, Line) and isinstance(l2, Line):
             if Line.relationship(l1, l2) != Line.LineRelationships.CROSSING:
                 return None
@@ -552,14 +552,14 @@ class Line:
         else:
             raise GameGeoTypeError("Arguments provided are not lines.")
     """
-        Calculates the intersection between this line and another using Line.intersection()
+        Calculates the intersection between this line and another using Line._intersection()
         May be optimized later.
         @param {Line} other the other line
         @return {Point, None}
-        @see Line.intersection(l1, l2)
+        @see Line._intersection(l1, l2)
     """
     def intersection(self, other):
-        return Line.intersection(self, other)
+        return Line._intersection(self, other)
     """
         Expresses the line as a set of two points.
         @return {str}
@@ -568,15 +568,40 @@ class Line:
     def __str__(self):
         return "Line({}, {})".format(self.p1, self.p2)
 
+"""
+    Line segment, supporting basic related calculations. May be optimized later.
+"""
 class LineSegment(Line):
+    """
+        Enumeration of line relationships. Includes non-coplanar, crossing, parallel, same-line and other.
+    """
     class LineRelationships(Enum):
         NON_COPLANAR = 1
         CROSSING = 2
         PARALLEL = 3
         SAME_LINE = 4
         OTHER = 5
+    """
+        Class constructor for class LineSegment. Taking two points on the line as arguments.
+        @param {Point} p1 the first point
+        @param {Point} p2 the second point
+        @see Line.__init__(self, p1, p2)
+    """
     def __init__(self, p1, p2):
         super().__init__(self, p1, p2)
+    """
+        Gets the relationship between two line segments. Includes non-coplanar, crossing, parallel, same-line and other.
+        May be optimized later.
+        @param {Line} l1 the first line
+        @param {Line} l2 the second line
+        @return {Line.LineRelationships}
+        @see Vector.crossp(a, b)
+        @see Line.getVec(self)
+        @see Point.__sub__(self, other)
+        @see Vector.abs(self)
+        @see Vector.__add__(self, other)
+        @see Line.dist(self, p)
+    """
     @staticmethod
     def relationship(l1, l2):
         if isinstance(l1, LineSegment) and isinstance(l2, LineSegment):
@@ -593,19 +618,38 @@ class LineSegment(Line):
                     return LineSegment.LineRelationships.CROSSING
                 else:
                     return LineSegment.LineRelationships.OTHER
-            elif abs(l1.dist(l2.p1)) > 0:
+            elif l1.dist(l2.p1) > 0:
                 return LineSegment.LineRelationships.PARALLEL
             else:
                 return LineSegment.LineRelationships.SAME_LINE
         else:
             raise GameGeoTypeError("Arguments provided are not lines.")
+    """
+        Expresses the line segment as a set of two end points.
+        @return {str}
+        @see Point.__str__(self)
+    """
     def __str__(self):
         return "LineSegment({}, {})".format(self.p1, self.p2)
 
+"""
+    Filled circle, supporting basic related calculations. May be optimized later.
+"""
 class FilledCircle:
+    """
+        Class constructor for class FilledCircle. Takes the center (point) and the radius (number) as arguments.
+        @param {Point} center the center of the filled circle
+        @param {int, float} radius the radius of the filled circle
+    """
     def __init__(self, center, radius):
         self.center = center
         self.radius = radius
+    """
+        Get the point at which the filled circle and an object is intersecting.
+        Will return the closest points feasible. Will return the perpendicular point if intersecting with a line / line segment.
+        @param {LineSegment, Line, FilledCircle, Point} obj the object
+        @return {Point}
+    """
     def intersect(self, obj):
         if isinstance(obj, LineSegment):
             # If the line doesn't even intersect with the circle
@@ -613,22 +657,22 @@ class FilledCircle:
                 return None
             # If at least one point of the segment is in the circle
             if obj.p1.on(self) and obj.p2.on(self):
-                # p = (Vector(obj.p1.x, obj.p1.y, obj.p1.z) + Vector(obj.p2.x, obj.p2.y, obj.p2.z)) * 0.5
-                # p = Point(p.x, p.y, p.z)
-                pass # Do nothing
+                if obj.p1 == obj.p2:
+                    return obj.p1
+                d1 = Point.dist(obj.p1, self.center)
+                d2 = Point.dist(obj.p2, self.center)
+                return Point.fromVector(Vector.fromPoint(obj.p1) * (d2 / (d1 + d2)) + Vector.fromPoint(obj.p2) * (d1 / (d1 + d2)))
             # Both points are out
-            a = Vector.dotp(obj.p1 - self.center, obj.getVec())
-            b = -Vector.dotp(obj.p2 - self.center, obj.getVec())
-            footp = a * Vector(obj.p1.x, obj.p1.y, obj.p1.z) + b * Vector(obj.p2.x, obj.p2.y, obj.p2.z)
-            footp = Point(footp.x, footp.y, footp.z)
-            return footp.on(obj)
+            a = Vector.dotp(obj.p2 - self.center, obj.getVec())
+            b = -Vector.dotp(obj.p1 - self.center, obj.getVec())
+            footp = Point.fromVector(Vector.fromPoint(obj.p1) * a + Vector.fromPoint(obj.p2) * b)
+            return footp if footp.on(obj) else None
         elif isinstance(obj, Line):
-            if obj.dist(self.center) > self.radius:
-                a = Vector.dotp(obj.p1 - self.center, obj.getVec())
-                b = -Vector.dotp(obj.p2 - self.center, obj.getVec())
-                footp = a * Vector(obj.p1.x, obj.p1.y, obj.p1.z) + b * Vector(obj.p2.x, obj.p2.y, obj.p2.z)
-                footp = Point(footp.x, footp.y, footp.z)
-                return footp.on(obj)
+            if obj.dist(self.center) <= self.radius:
+                a = Vector.dotp(obj.p2 - self.center, obj.getVec())
+                b = -Vector.dotp(obj.p1 - self.center, obj.getVec())
+                footp = Point.fromVector(Vector.fromPoint(obj.p1) * a + Vector.fromPoint(obj.p2) * b)
+                return footp if footp.on(obj) else None
             else:
                 return None
         elif isinstance(obj, FilledCircle):
@@ -639,9 +683,17 @@ class FilledCircle:
                 return None
         elif isinstance(obj, Point):
             return obj if self.radius >= Point.dist(self.center, obj) else None
+    """
+        Expresses the filled circle as a center point and a radius.
+        @return {str}
+        @see Point.__str__(self)
+    """
     def __str__(self):
-        return "Circle({}, {:.4f})".format(self.center, self.radius)
+        return "Circle({}, {:f})".format(self.center, self.radius)
 
+"""
+    Empty main function that will be called only if this module is the entry point.
+"""
 def main():
     pass
 
