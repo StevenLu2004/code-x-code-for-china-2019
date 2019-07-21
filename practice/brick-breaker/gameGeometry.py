@@ -227,7 +227,7 @@ class Point:
         if isinstance(other, Point):
             return self.x == other.x and self.y == other.y and self.z == other.z
         else:
-            raise GameGeoTypeError("Second operand type is not Point")
+            return False
     """
         Add a vector to a point.
         @param {Vector} other the vector to be added
@@ -668,7 +668,7 @@ class LineSegment(Line):
         @see Line.__init__(self, p1, p2)
     """
     def __init__(self, p1, p2):
-        super().__init__(self, p1, p2)
+        super().__init__(p1, p2)
     """
         Gets the relationship between two line segments. Includes non-coplanar, crossing, parallel, same-line and other.
         May be optimized later.
@@ -762,6 +762,8 @@ class FilledCircle:
                 return Point.fromVector(Vector.fromPoint(obj.p1) * (d2 / (d1 + d2)) + Vector.fromPoint(obj.p2) * (d1 / (d1 + d2)))
             # Both points are out
             footp = obj.perpendicularP(self.center)
+            if footp.on(obj):
+                print("a")
             return footp if footp.on(obj) else None
         elif isinstance(obj, Line):
             if obj.dist(self.center) <= self.radius:

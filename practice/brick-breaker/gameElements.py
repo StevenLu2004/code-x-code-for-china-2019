@@ -20,7 +20,7 @@ class StaticRectangle:
         ]
         self.canv = canv
     def __del__(self):
-        canv.delete(self.rect)
+        self.canv.delete(self.rect)
     def helpColli(self, circle):
         f = False
         for p in self.cornerPoints:
@@ -33,14 +33,14 @@ class StaticRectangle:
 
 class Circle:
     def __init__(self, canv, centerX, centerY, radius):
-        self.particle = phys.Particle(pos = geo.Point(gVars.windowDm[0] / 2, gVars.windowDm[1] / 2))
+        self.particle = phys.Particle(pos = geo.Point(centerX, centerY))
         self.circle = canv.create_oval(centerX - radius, centerY - radius, centerX + radius, centerY + radius, state = "hidden")
-        self.filledCircle = geo.FilledCircle(self.particle.pos, radius)
+        self.filledCircle = geo.FilledCircle(self.particle.pos.copy(), radius)
         self.canv = canv
         self.on = False
         self.colliPoints = []
     def __del__(self):
-        canv.delete(self.circle)
+        self.canv.delete(self.circle)
     def move(self):
         if not self.on:
             self.particle.play()
@@ -62,3 +62,5 @@ class Circle:
             self.resetColli()
     def updateDrawing(self):
         self.canv.coords(self.circle, (self.filledCircle.center.x - self.filledCircle.radius, self.filledCircle.center.y - self.filledCircle.radius, self.filledCircle.center.x + self.filledCircle.radius, self.filledCircle.center.y + self.filledCircle.radius))
+    def helpColli(self, circle):
+        return circle.checkColli(self.filledCircle) != None
