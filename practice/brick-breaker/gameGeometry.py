@@ -197,6 +197,12 @@ class Angle:
             return Angle(self.__val / other, Angle.Mode.CIR)
         else:
             raise GameGeoTypeError("Second operand should be a number but is {}".format(type(other)))
+    """
+        Returns a copy of the current angle.
+        @return {Angle}
+    """
+    def copy(self):
+        return Angle(self.__val, Angle.Mode.CIR)
 
 """
     Point, supporting basic related calculations. May be optimized later.
@@ -338,7 +344,13 @@ class Point:
     """
     @staticmethod
     def fromVector(vec):
-        return Point(vec.x, vec.y)
+        return Point(vec.x, vec.y, vec.z)
+    """
+        Returns a copy of the point.
+        @return {Point}
+    """
+    def copy(self):
+        return Point(self.x, self.y, self.z)
 
 """
     Vector, supporting basic related calculations. May be optimized later.
@@ -364,6 +376,12 @@ class Vector:
             return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
         else:
             raise GameGeoTypeError("Second operand type not recognized")
+    """
+        Gets the vector of same magnitude and opposite direction (i.e. negative vector).
+        @return {Vector}
+    """
+    def __neg__(self):
+        return Vector(-self.x, -self.y, -self.z)
     """
         Subtracts the other vector from the one.
         @param {Vector} other the other vector
@@ -425,6 +443,36 @@ class Vector:
     def abs(self):
         return math.sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
     """
+        Calculates the unit vector along the direction of this vector.
+        @return {Vector}
+        @see Vector.abs(self)
+    """
+    def unit(self):
+        sz = self.abs()
+        return Vector(self.x / sz, self.y / sz, self.z / sz)
+    """
+        Expresses the other vector as a vector in a custom cartesian coordinate with +x-axis being the direction of this vector.
+        @return {Vector}
+        @see Vector.unit(self)
+    """
+    def xy_alignx(self, other):
+        u = self.unit()
+        c1 = complex(u.x, u.y)
+        c2 = complex(other.x, other.y)
+        c2prime = c2 / c1
+        return Vector(c2prime.real, c2prime.imag, other.z)
+    """
+        Given the other vector as a vector in a custom cartesian coordinate with +x-axis being the direction of this vector, put it back.
+        @return {Vector}
+        @see Vector.unit(self)
+    """
+    def xy_restore(self, other):
+        u = self.unit()
+        c1 = complex(u.x, u.y)
+        c2 = complex(other.x, other.y)
+        c2prime = c2 * c1
+        return Vector(c2prime.real, c2prime.imag, other.z)
+    """
         Calculates the xy-direction of the vector.
         @return {Angle}
         @see Angle.Cir(val)
@@ -461,7 +509,13 @@ class Vector:
     """
     @staticmethod
     def fromPoint(pt):
-        return Vector(pt.x, pt.y)
+        return Vector(pt.x, pt.y, pt.z)
+    """
+        Returns a copy of the vector.
+        @return {Vector}
+    """
+    def copy(self):
+        return Vector(self.x, self.y, self.z)
 
 """
     Line, supporting basic related calculations. May be optimized later.
@@ -561,12 +615,38 @@ class Line:
     def intersection(self, other):
         return Line._intersection(self, other)
     """
+        Calculates the perpendicular point from a point to this line.
+        @param {Point} pt the point
+        @return {Point}
+        @see Vector.dotp(a, b)
+        @see Point.__sub__(self, other)
+        @see Line.getVec(self)
+        @see Point.fromVector(vec)
+        @see Vector.fromPoint(pt)
+        @see Vector.__mul__(self, other)
+        @see Vector.__add__(self, other)
+    """
+    def perpendicularP(self, pt):
+        if isinstance(pt, Point):
+            a = Vector.dotp(self.p2 - pt, self.getVec())
+            b = -Vector.dotp(self.p1 - pt, self.getVec())
+            return Point.fromVector(Vector.fromPoint(self.p1) * a + Vector.fromPoint(self.p2) * b)
+        else:
+            raise GameGeoTypeError("Argument for Line.perpendicularP has to be a Point.")
+    """
         Expresses the line as a set of two points.
         @return {str}
         @see Point.__str__(self)
     """
     def __str__(self):
         return "Line({}, {})".format(self.p1, self.p2)
+    """
+        Returns a copy of the line.
+        @return {Line}
+        @see Point.copy(self)
+    """
+    def copy(self):
+        return Line(self.p1.copy(), self.p2.copy())
 
 """
     Line segment, supporting basic related calculations. May be optimized later.
@@ -631,6 +711,13 @@ class LineSegment(Line):
     """
     def __str__(self):
         return "LineSegment({}, {})".format(self.p1, self.p2)
+    """
+        Returns a copy of the line segment.
+        @return {LineSegment}
+        @see Point.copy()
+    """
+    def copy(self):
+        return LineSegment(self.p1.copy(), self.p2.copy())
 
 """
     Filled circle, supporting basic related calculations. May be optimized later.
@@ -649,6 +736,17 @@ class FilledCircle:
         Will return the closest points feasible. Will return the perpendicular point if intersecting with a line / line segment.
         @param {LineSegment, Line, FilledCircle, Point} obj the object
         @return {Point}
+        @see Line.dist(self, p)
+        @see Point.on(self, container)
+        @see Point.__eq__(self, other)
+        @see Point.dist(a, b)
+        @see Point.fromVector(vec)
+        @see Vector.fromPoint(pt)
+        @see Vector.__mul__(self, other)
+        @see Vector.__add__(self, other)
+        @see Line.perpendicularP(self, pt)
+        @see Point.__add__(self, other)
+        @see Point.__sub__(self, other)
     """
     def intersect(self, obj):
         if isinstance(obj, LineSegment):
@@ -663,15 +761,11 @@ class FilledCircle:
                 d2 = Point.dist(obj.p2, self.center)
                 return Point.fromVector(Vector.fromPoint(obj.p1) * (d2 / (d1 + d2)) + Vector.fromPoint(obj.p2) * (d1 / (d1 + d2)))
             # Both points are out
-            a = Vector.dotp(obj.p2 - self.center, obj.getVec())
-            b = -Vector.dotp(obj.p1 - self.center, obj.getVec())
-            footp = Point.fromVector(Vector.fromPoint(obj.p1) * a + Vector.fromPoint(obj.p2) * b)
+            footp = obj.perpendicularP(self.center)
             return footp if footp.on(obj) else None
         elif isinstance(obj, Line):
             if obj.dist(self.center) <= self.radius:
-                a = Vector.dotp(obj.p2 - self.center, obj.getVec())
-                b = -Vector.dotp(obj.p1 - self.center, obj.getVec())
-                footp = Point.fromVector(Vector.fromPoint(obj.p1) * a + Vector.fromPoint(obj.p2) * b)
+                footp = obj.perpendicularP(self.center)
                 return footp if footp.on(obj) else None
             else:
                 return None
@@ -690,6 +784,13 @@ class FilledCircle:
     """
     def __str__(self):
         return "Circle({}, {:f})".format(self.center, self.radius)
+    """
+        Returns a copy of the filled circle.
+        @return {FilledCircle}
+        @see Point.copy(self)
+    """
+    def copy(self):
+        return FilledCircle(self.center.copy(), self.radius)
 
 """
     Empty main function that will be called only if this module is the entry point.
