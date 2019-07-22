@@ -40,11 +40,11 @@ def newwindow(title=None,size=(200,200),pos=(100,100)):
 
 def exitOnEscapeKey(event):
 	global wnd, interval
-	global ball, border_top, border_bottom
-	del ball, border_top, border_bottom
+	global ball, border_top, border_bottom, border_left, border_right
 	if event.char and event.char.encode("UTF-8")[0] == 27:
 		if interval.running:
 			interval.cancel()
+		del ball, border_top, border_bottom, border_left, border_right
 		wnd.destroy()
 
 __gameStarted = False
@@ -52,8 +52,7 @@ def startGame(event):
 	global interval, wnd, canv
 	global ball
 	ball.setv((geo.Point(event.x, event.y) - ball.particle.pos).unit() * ballSpeed)
-	print(ball.particle.vel)
-	canv.itemconfig(ball.circle, fill = "#33ff99", state = "normal")
+	# print(ball.particle.vel)
 	interval.start()
 	pass
 
@@ -62,8 +61,10 @@ def keyEventHandler(event):
 	exitOnEscapeKey(event)
 
 def leftReleaseHandler(event):
+	global __gameStarted
 	if not __gameStarted:
 		startGame(event)
+		__gameStarted = True
 	pass
 
 def cursorMotionHandler(event):
@@ -80,25 +81,37 @@ def intervalContent():
 	pass
 
 def backupIntervalContent():
-	global ball, border_top, border_bottom
-	if border_top.helpColli(ball) or border_bottom.helpColli(ball):
-		print("Collide!")
+	global ball, border_top, border_bottom, border_left, border_right
+	border_top.helpColli(ball)
+	border_bottom.helpColli(ball)
+	border_left.helpColli(ball)
+	border_right.helpColli(ball)
 	ball.resolveColli()
 	ball.move()
 	pass
 
 def main():
 	global canv, wnd, interval
-	global ball, border_top, border_bottom
-	wnd = newwindow(title = "Practice", size = windowDm)
+	global ball, border_top, border_bottom, border_left, border_right
+	global screenDm
+	wnd = newwindow(title = "{{BREAKOUT}}", size = windowDm)
+	screenDm = (wnd.winfo_screenwidth(), wnd.winfo_screenheight())
+	wnd.geometry(sizetostr(windowDm, ((screenDm[0] - windowDm[0]) // 2, (screenDm[1] - windowDm[1]) // 2)))
 	wnd.bind("<Key>", keyEventHandler)
 	wnd.bind("<ButtonRelease-1>", leftReleaseHandler)
 	wnd.bind("<Motion>", cursorMotionHandler)
 	canv = TK.Canvas(wnd, width = windowDm[0], height = windowDm[1])
 	canv.pack()
 	ball = ele.Circle(canv, windowDm[0] / 2, windowDm[1] / 2 + 180, 10)
-	border_top = ele.StaticRectangle(canv, windowDm[0] / 2, -5, windowDm[0], 10)
-	border_bottom = ele.StaticRectangle(canv, windowDm[0] / 2, -5, windowDm[0], 10)
+	canv.itemconfig(ball.circle, **ballCanvOptions)
+	border_top = ele.StaticRectangle(canv, windowDm[0] / 2, borderHeightTopBottom / 2, windowDm[0], borderHeightTopBottom)
+	border_bottom = ele.StaticRectangle(canv, windowDm[0] / 2, windowDm[1]  - borderHeightTopBottom / 2, windowDm[0], borderHeightTopBottom)
+	border_left = ele.Circle(canv, windowDm[0] / 2 - borderOffsetLeftRight - math.sqrt(borderRadiusLeftRight ** 2 - (windowDm[1] / 2 - borderHeightTopBottom) ** 2), windowDm[1] / 2, borderRadiusLeftRight)
+	border_right = ele.Circle(canv, windowDm[0] / 2 + borderOffsetLeftRight + math.sqrt(borderRadiusLeftRight ** 2 - (windowDm[1] / 2 - borderHeightTopBottom) ** 2), windowDm[1] / 2, borderRadiusLeftRight)
+	canv.itemconfig(border_top.rect, **borderCommonCanvOptions)
+	canv.itemconfig(border_bottom.rect, **borderCommonCanvOptions)
+	canv.itemconfig(border_left.circle, **borderCommonCanvOptions)
+	canv.itemconfig(border_right.circle, **borderCommonCanvOptions)
 	interval = itv4.Interval(intervalContent, 1 / targetRate, fixed = True, xsafe = True, xsafeFun = backupIntervalContent)
 	return 0
 

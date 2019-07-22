@@ -1,5 +1,23 @@
-windowDm = (400, 400) # px
-windowOffset = (100, 100) # px
-targetRate = 400 # Hz
+windowDm = (500, 500) # px
+targetRate = 800 # Hz
 
-ballSpeed = 80 # px/s
+canvasOptions = {\
+    "bg": "#eeeeee"\
+}
+
+ballSpeed = 320 # px/s
+ballRadius = 4 # px
+ballCanvOptions = {\
+    "fill": "#33ff99", \
+    "width": 0, \
+    "state": "normal"\
+}
+
+borderHeightTopBottom = 10 # px
+borderOffsetLeftRight = 200 # px
+borderRadiusLeftRight = 1600 # px
+borderCommonCanvOptions = {\
+    "fill": "#dddddd", \
+    "width": 0, \
+    "state": "normal"\
+}

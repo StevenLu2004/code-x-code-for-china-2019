@@ -297,15 +297,15 @@ class Point:
         @return {bool}
         @see Point.__eq__(self, other)
     """
-    def on(self, container):
+    def on(self, container, threshold = 0):
         if isinstance(container, LineSegment):
-            return (self == container.p1 or Vector.crossp(container.getVec(), self - container.p1).abs() == 0) and (Vector.dotp(container.p1 - self, container.p2 - self) <= 0)
+            return (self == container.p1 or Vector.crossp(container.getVec(), self - container.p1).abs() <= threshold) and (Vector.dotp(container.p1 - self, container.p2 - self) <= threshold)
         elif isinstance(container, Line):
-            return (self == container.p1 or Vector.crossp(container.getVec(), self - container.p1).abs() == 0)
+            return (self == container.p1 or Vector.crossp(container.getVec(), self - container.p1).abs() <= threshold)
         elif isinstance(container, FilledCircle):
-            return Point.dist(self, container.center) <= container.radius
+            return Point.dist(self, container.center) <= container.radius + threshold
         elif isinstance(container, Point):
-            return self == container
+            return self == container if threshold == 0 else Point.dist(self, container) <= threshold
         else:
             raise GameGeoTypeError("Container type not recognized")
     """
@@ -407,7 +407,7 @@ class Vector:
         @param {int, float} other the scalar
         @return {Vector}
     """
-    def __div__(self, other):
+    def __truediv__(self, other):
         if isinstance(other, int) or isinstance(other, float):
             return Vector(self.x / other, self.y / other, self.z / other)
         else:
@@ -630,7 +630,7 @@ class Line:
         if isinstance(pt, Point):
             a = Vector.dotp(self.p2 - pt, self.getVec())
             b = -Vector.dotp(self.p1 - pt, self.getVec())
-            return Point.fromVector(Vector.fromPoint(self.p1) * a + Vector.fromPoint(self.p2) * b)
+            return Point.fromVector((Vector.fromPoint(self.p1) * a + Vector.fromPoint(self.p2) * b) / (a + b))
         else:
             raise GameGeoTypeError("Argument for Line.perpendicularP has to be a Point.")
     """
@@ -762,9 +762,10 @@ class FilledCircle:
                 return Point.fromVector(Vector.fromPoint(obj.p1) * (d2 / (d1 + d2)) + Vector.fromPoint(obj.p2) * (d1 / (d1 + d2)))
             # Both points are out
             footp = obj.perpendicularP(self.center)
-            if footp.on(obj):
-                print("a")
-            return footp if footp.on(obj) else None
+            v1 = obj.getVec()
+            v2 = footp - obj.p1
+            v3 = v1.xy_alignx(v2)
+            return footp if 0 <= v3.x <= v1.abs() else None
         elif isinstance(obj, Line):
             if obj.dist(self.center) <= self.radius:
                 footp = obj.perpendicularP(self.center)
