@@ -39,6 +39,7 @@ class Circle:
         self.canv = canv
         self.on = False
         self.colliPoints = []
+        self.touching = []
     def __del__(self):
         self.canv.delete(self.circle)
     def move(self):
@@ -47,14 +48,26 @@ class Circle:
             self.on = True
         self.particle.move()
         self.filledCircle.center = self.particle.pos.copy()
+    def stop(self):
+        if self.on:
+            self.particle.pause()
+            self.on = False
     def setv(self, vel):
         self.particle.setVel(vel)
+    def setp(self, pos):
+        self.particle.setPos(pos)
+        self.filledCircle.center = self.particle.pos.copy()
     def resetColli(self):
         self.colliPoints = []
     def checkColli(self, obj):
         p = self.filledCircle.intersect(obj)
         if p != None:
-            self.colliPoints.append(p)
+            if not (obj in self.touching):
+                self.colliPoints.append(p)
+                self.touching.append(obj)
+        else:
+            if obj in self.touching:
+                self.touching.remove(obj)
         return p
     def resolveColli(self):
         if self.colliPoints:

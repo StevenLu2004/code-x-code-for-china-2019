@@ -12,10 +12,12 @@ class Particle:
             self.pos += self.vel * (t - self.timestamp)
             self.timestamp = t
     def play(self):
+        if not self.playing:
+            self.timestamp = timer()
         self.playing = True
-        self.timestamp = timer()
     def pause(self):
-        self.move()
+        if self.playing:
+            self.move()
         self.playing = False
     def setPos(self, pos = geo.Point(0, 0)):
         self.pos = pos.copy()
