@@ -103,15 +103,10 @@ def updateCanvas():
 	if 2 <= ballActive < 4:
 		ballActive -= 2
 		canv.itemconfig(ball.circle, ballCanvOptions[ballActive])
-	blockDelList = []
-	for i in blockHealthDownList:
-		if blockHealth[i]:
-			canv.itemconfig(blocks[i].rect, blockCanvOptions[blockHealth[i]])
-		else:
-			blockDelList.append(i - len(blockDelList))
-	for i in blockDelList:
-		del blocks[i], blockHealth[i]
+	bhdlTmp = blockHealthDownList
 	blockHealthDownList = []
+	for i in bhdlTmp:
+		canv.itemconfig(blocks[i].rect, blockCanvOptions[blockHealth[i]])
 	# print(ball.filledCircle.center)
 
 def intervalContent():

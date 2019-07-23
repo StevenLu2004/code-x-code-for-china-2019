@@ -10,7 +10,7 @@ bgBlockCanvOptions = {\
     "state": "normal"\
 }
 
-ballSpeed = 320 # px/s
+ballSpeed = 240 # px/s
 ballRadius = 6 # px
 ballStartOffset = 22
 ballCanvOptions = [
@@ -47,7 +47,7 @@ paddleSpeedOnKey = 320 # px/s
 blockSize = (32, 16) # px
 blockGridSize = (8, 8) # px
 blockMargin = (8, 8) # px
-defaultBlockHealth = 3
+defaultBlockHealth = 7
 blockCanvOptions = [\
     {\
         "fill": "#ffffff", \
